@@ -16,7 +16,7 @@ const webpackConfig = {
   plugins: [
     new HtmlWebpackPlugin({
       inject: 'head',
-      template: `index.template.html`,
+      template: `docs/index.html`,
     }),
   ],
   resolveLoader: {
