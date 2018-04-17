@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello world</title>
+    <style>
+      #container {
+        margin: 20px;
+        border: 10px solid black;
+        height: 600px;
+        width: 500px;
+        background-color: #ccc;
+      }
+
+      #spot {
+        position: relative;
+        top: 50px;
+        left: 100px;
+        width: 15px;
+        height: 15px;
+        border-radius: 15px;
+        border 2px solid teal;
+        background-color: black;
+      }
+
+      #floater {
+        width: 300px;
+        border: 1px solid black;
+        background-color: teal;
+        box-shadow: 10px 5px 5px red;
+        padding: 10px;
+        position: relative;
+        left: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <button name="more-text">More text</button>
+      <button name="reposition">Reposition</button>
+      <button name="down">Move dot down</button>
+      <button name="up">Move dot up</button>
+    </div>
+    <div id="container">
+      <div id="spot">
+        <div id="floater">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam consequat mauris diam, et malesuada massa elementum vitae. Aenean nec erat ut nunc faucibus molestie vitae ut eros. Sed quis accumsan velit, quis hendrerit nibh. Mauris auctor neque augue, nec cursus ligula fermentum eu. Etiam non ipsum in mi tempus tincidunt a a magna. Nunc elementum sagittis turpis ut tincidunt. Vestibulum tempus vel turpis ut sagittis. Proin sodales nisl et nulla dictum semper. Cras dapibus nisl sit amet urna accumsan, ac euismod nunc pulvinar. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi vel nisl ut dui posuere scelerisque. Donec porta sapien at molestie viverra. Fusce sit amet ex venenatis, ornare metus eu, elementum nisi.</p>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      function moreText(ev) {
+        ev.preventDefault();
+        const el = document.createElement('p');
+        el.innerText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam consequat mauris diam, et malesuada massa elementum vitae. Aenean nec erat ut nunc faucibus molestie vitae ut eros.`;
+
+        document.querySelector('#floater').appendChild(el);
+      }
+
+      function reposition(boundingBox, centerEl, floatingEl) {
+        const floatingHeight = floatingEl.scrollHeight;
+        const boundingHeight = boundingBox.clientHeight;
+        const boundingBorder = parseInt(window.getComputedStyle(boundingBox, null).borderWidth);
+        const spotHeight = centerEl.clientHeight;
+        const halfSpotHeight = spotHeight / 2;
+
+        const spotOffset = centerEl.getBoundingClientRect().y - boundingBox.getBoundingClientRect().y - boundingBorder;
+
+        const placeAtTop = () => { floatingEl.style.top = '-' + spotOffset + 'px'};
+        const placeAtBottom = () => {
+          // (boundingHeight - spotOffset) - (boundingHeight - floatingHeight) == floatingHeight - spotHeight
+          console.log('going down', floatingHeight, spotOffset);
+          floatingEl.style.top = (-spotOffset) + 'px';
+        };
+
+        if (floatingHeight > boundingHeight) {
+          console.log('overflow is inevitable', floatingHeight, boundingHeight);
+          placeAtTop();
+        } else {
+          console.log('we can reposition smartly', floatingHeight, boundingHeight);
+
+          const halfHeight = floatingHeight / 2;
+          if (halfHeight < spotOffset) {
+            console.log('we have space above');
+            if (halfHeight + spotOffset > boundingHeight) {
+              console.log('but not below, let\'s peg to top');
+
+              console.log('should we peg to top or bottom?');
+              if (spotOffset > boundingHeight / 2) {
+                console.log('since we are in the bottom half, peg to bottom');
+                placeAtBottom();
+              } else {
+                console.log('we are in the top half, so peg to top');
+                placeAtTop();
+              }
+            } else {
+              console.log('and below! center it baby');
+              floatingEl.style.top = '-' + ((spotOffset / 2) + halfSpotHeight) + 'px';
+            }
+          } else {
+            console.log("we don't have the space above");
+
+            console.log("but we can be greedy");
+            placeAtTop();
+          }
+        }
+
+
+      }
+
+      const bound = reposition.bind(null,
+          document.querySelector('#container'),
+          document.querySelector('#spot'),
+          document.querySelector('#floater')
+          );
+
+      function move(el, amount) {
+        let amt = parseInt(el.style.top);
+        el.style.top = amt + amount + 'px';
+      };
+      const spot = document.querySelector('#spot');
+      spot.style.top = '40px';
+      document.querySelector('button[name=more-text]').addEventListener('click', moreText);
+      document.querySelector('button[name=reposition]').addEventListener('click', bound);
+      document.querySelector('button[name=up]').addEventListener('click', () => move(spot, -10));
+      document.querySelector('button[name=down]').addEventListener('click', () => move(spot, 20));
+    </script>
+  </body>
+</html>
